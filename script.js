@@ -1,7 +1,7 @@
 // Collez ici l'URL /exec obtenue après le déploiement de Code.gs.
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw66m8ztIcxU7QUxhDxKCrgq0Sz7_QIZl_15uWAXgeZTUZajNcq1oxeNkNHt-6yuXVG/exec";
 
-const MUSIC_FILE = "audio/akiva-mizmor-letoda.mp3";
+const MUSIC_FILE = "audio/musique.mp3";
 
 const form = document.getElementById("rsvpForm");
 const statusLine = document.getElementById("formStatus");
