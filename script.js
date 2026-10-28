@@ -1,9 +1,7 @@
 // Collez ici l'URL /exec obtenue après le déploiement de Code.gs.
-const GOOGLE_SCRIPT_URL = "";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw66m8ztIcxU7QUxhDxKCrgq0Sz7_QIZl_15uWAXgeZTUZajNcq1oxeNkNHt-6yuXVG/exec";
 
-// Quand vous aurez choisi une musique, mettez le fichier dans audio/ et
-// remplacez la valeur par exemple par "audio/musique.mp3".
-const MUSIC_FILE = "";
+const MUSIC_FILE = "audio/akiva-mizmor-letoda.mp3";
 
 const form = document.getElementById("rsvpForm");
 const statusLine = document.getElementById("formStatus");
@@ -15,8 +13,6 @@ const music = document.getElementById("pageMusic");
 const musicButton = document.getElementById("musicButton");
 const musicLabel = document.getElementById("musicLabel");
 const guestName = form.elements.namedItem("guestName");
-const guestContact = form.elements.namedItem("guestContact");
-const guestMessage = form.elements.namedItem("guestMessage");
 const website = form.elements.namedItem("website");
 
 function setStatus(message, type = "") {
@@ -25,7 +21,7 @@ function setStatus(message, type = "") {
 }
 
 function updateAttendance() {
-  const isAbsent = attendance.value === "Absent(e)";
+  const isAbsent = attendance.value === "Je ne pourrai pas être présent";
   guestCount.disabled = isAbsent;
   guestCount.required = !isAbsent;
   countField.style.opacity = isAbsent ? ".5" : "1";
@@ -48,10 +44,8 @@ form.addEventListener("submit", async (event) => {
 
   const data = new URLSearchParams({
     guestName: guestName.value.trim(),
-    guestContact: guestContact.value.trim(),
     attendance: attendance.value,
-    guestCount: attendance.value === "Absent(e)" ? "0" : guestCount.value,
-    guestMessage: guestMessage.value.trim(),
+    guestCount: attendance.value === "Je ne pourrai pas être présent" ? "0" : guestCount.value,
     website: website.value
   });
 
@@ -81,18 +75,48 @@ form.addEventListener("submit", async (event) => {
 if (MUSIC_FILE.trim()) {
   music.src = MUSIC_FILE;
   musicButton.hidden = false;
+
+  let automaticStartEnabled = true;
+  let starting = false;
+  const automaticStartEvents = ["pointerdown", "touchstart", "touchend", "click", "wheel", "scroll", "keydown"];
+
+  function removeAutomaticStart() {
+    automaticStartEnabled = false;
+    automaticStartEvents.forEach((eventName) => {
+      window.removeEventListener(eventName, startMusicOnInteraction);
+    });
+  }
+
+  async function startMusicOnInteraction(event) {
+    if (!automaticStartEnabled || starting || event.target.closest?.("#musicButton")) return;
+    starting = true;
+    try {
+      await music.play();
+      removeAutomaticStart();
+    } catch {
+      // Certains navigateurs attendent un toucher ou un clic : on réessaie au prochain geste.
+    } finally {
+      starting = false;
+    }
+  }
+
+  automaticStartEvents.forEach((eventName) => {
+    window.addEventListener(eventName, startMusicOnInteraction, { passive: true });
+  });
+
   musicButton.addEventListener("click", async () => {
+    removeAutomaticStart();
     if (music.paused) {
       try { await music.play(); }
       catch { musicLabel.textContent = "Lecture impossible"; }
     } else music.pause();
   });
   music.addEventListener("play", () => {
-    musicLabel.textContent = "Pause";
-    musicButton.setAttribute("aria-label", "Mettre la musique en pause");
+    musicLabel.textContent = "Couper la musique";
+    musicButton.setAttribute("aria-label", "Couper la musique");
   });
   music.addEventListener("pause", () => {
-    musicLabel.textContent = "Musique";
+    musicLabel.textContent = "Lancer la musique";
     musicButton.setAttribute("aria-label", "Lancer la musique");
   });
 }
