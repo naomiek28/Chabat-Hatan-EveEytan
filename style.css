@@ -3,7 +3,7 @@
   --text: #59483f;
   --mauve: #85594f;
   --gold: #b28b5d;
-  --brown: #6f6258;
+  --brown: #8d7464;
   --cream: #fff7ee;
 }
 * { box-sizing: border-box; }
@@ -142,6 +142,11 @@ footer {
 }
 .music-button[hidden] { display: none; }
 .music-icon { font-size: 17px; }
+#pageMusic[controls] {
+  position: fixed; z-index: 10; top: 64px;
+  right: max(15px, calc((100vw - 520px) / 2 + 15px));
+  width: min(300px, calc(100vw - 30px));
+}
 
 @media (max-width: 600px) {
   body { max-width: none; box-shadow: none; }
