@@ -78,7 +78,9 @@ if (MUSIC_FILE.trim()) {
 
   let automaticStartEnabled = true;
   let starting = false;
-  const automaticStartEvents = ["pointerdown", "touchstart", "touchend", "click", "wheel", "scroll", "keydown"];
+  let isActuallyPlaying = false;
+  // Safari sur iPhone n'autorise le son qu'après un tap ou un clic réel.
+  const automaticStartEvents = ["click", "keydown"];
 
   function removeAutomaticStart() {
     automaticStartEnabled = false;
@@ -106,17 +108,32 @@ if (MUSIC_FILE.trim()) {
 
   musicButton.addEventListener("click", async () => {
     removeAutomaticStart();
-    if (music.paused) {
-      try { await music.play(); }
-      catch { musicLabel.textContent = "Lecture impossible"; }
-    } else music.pause();
+    if (isActuallyPlaying && !music.paused) {
+      music.pause();
+      return;
+    }
+    try {
+      await music.play();
+    } catch {
+      // Si le bouton personnalisé est bloqué, proposer le lecteur de l'iPhone.
+      music.controls = true;
+      musicLabel.textContent = "Utiliser ▶ ci-dessous";
+      musicButton.setAttribute("aria-label", "Utiliser le lecteur audio ci-dessous");
+    }
   });
-  music.addEventListener("play", () => {
+  music.addEventListener("playing", () => {
+    isActuallyPlaying = true;
+    music.controls = false;
     musicLabel.textContent = "Couper la musique";
     musicButton.setAttribute("aria-label", "Couper la musique");
   });
   music.addEventListener("pause", () => {
+    isActuallyPlaying = false;
     musicLabel.textContent = "Lancer la musique";
     musicButton.setAttribute("aria-label", "Lancer la musique");
+  });
+  music.addEventListener("error", () => {
+    musicLabel.textContent = "Audio indisponible";
+    musicButton.setAttribute("aria-label", "Audio indisponible");
   });
 }
