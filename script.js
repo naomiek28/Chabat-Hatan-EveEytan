@@ -79,8 +79,9 @@ if (MUSIC_FILE.trim()) {
   let automaticStartEnabled = true;
   let starting = false;
   let isActuallyPlaying = false;
-  // Safari sur iPhone n'autorise le son qu'après un tap ou un clic réel.
-  const automaticStartEvents = ["click", "keydown"];
+  let lastScrollAttempt = -Infinity;
+  // Le défilement est tenté, puis le tap ou le clic sert de secours si Safari le refuse.
+  const automaticStartEvents = ["scroll", "touchend", "click", "keydown"];
 
   function removeAutomaticStart() {
     automaticStartEnabled = false;
@@ -90,7 +91,12 @@ if (MUSIC_FILE.trim()) {
   }
 
   async function startMusicOnInteraction(event) {
-    if (!automaticStartEnabled || starting || event.target.closest?.("#musicButton")) return;
+    if (!automaticStartEnabled || event.target.closest?.("#musicButton")) return;
+    if (event.type === "scroll") {
+      const now = performance.now();
+      if (starting || now - lastScrollAttempt < 1500) return;
+      lastScrollAttempt = now;
+    }
     starting = true;
     try {
       await music.play();
